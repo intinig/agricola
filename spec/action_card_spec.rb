@@ -212,7 +212,7 @@ describe ActionCard do
     })
     a.act!.should == {:required_actions => {:renovate => renovation_cost}, :resources => {}}
   end
-  
+    
   private
   def room_cost
     {
@@ -240,5 +240,16 @@ describe ActionCard do
       :cost => {:wood => 2}, 
       :multiple => true
     }
+  end
+end
+
+describe ActionCard, "relationships" do
+  it "should be able to combine cards in a relationship" do
+    wood = ActionCard.new(:description => "3 Wood", :per_turn => {:wood => 3})
+    clay = ActionCard.new(:description => "1 Clay", :per_turn => {:clay => 1})
+    
+    ActionCard.chain(wood, clay, :and_or).should == ActionCard.new(
+      :description => "3 Wood", :per_turn => {:wood => 3}, :and_or => clay
+    )
   end
 end

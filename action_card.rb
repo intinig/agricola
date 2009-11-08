@@ -1,5 +1,6 @@
 class ActionCard
-  attr_accessor :description, :or_card, :and_or_card, :after_card, :and_card
+  attr_accessor :or_card, :and_or_card, :after_card, :and_card
+  attr_reader :description, :fixed, :per_turn, :actions
   
   def initialize(options = {})
     @description = options.delete(:description) || raise("description is required")
@@ -14,7 +15,15 @@ class ActionCard
     @and_or_card = options.delete(:and_or)
     @after_card = options.delete(:after)
   end
-      
+  
+  def ==(other)
+    @description == other.description && @actions == other.actions && @fixed == other.fixed && @per_turn == other.per_turn && @and_card == other.and_card && @or_card == other.or_card && @and_or_card == other.and_or_card && @after_card == other.after_card
+  end
+  
+  def self.chain(first, second, relationship)
+    ActionCard.new(:description => first.description, :fixed => first.fixed, :per_turn => first.per_turn, :actions => first.actions, relationship => second)
+  end
+  
   def allows_occupation?
     @actions[:occupation] ? true : false
   end
