@@ -47,7 +47,7 @@ module CardSets
     end
     
     def self.minor_improvement
-      ActionCard.new(:description => "Minor Improvement", :actions => {:minor_improvement => :single})
+      ActionCard.new(:description => "Minor Improvement", :actions => {:improvement => {:type => :minor, :multiple => false}})
     end
     
     def self.starting_player_and_or_minor_improvement
@@ -129,6 +129,75 @@ module CardSets
       boar = ActionCard.new(:description => "1 Boar", :fixed => {:boar => 1})
       ActionCard.new(:description => "1 Sheep, 1 Food", :fixed => {:food => 1, :sheep => 1}, :or => [boar, cattle])
     end
+    
+    def self.minor_or_major_improvement
+      ActionCard.new(:description => "1 Minor or 1 Major Improvement", :actions => {:improvement => {:type => :any, :multiple => false}})
+    end
+    
+    def self.sow
+      ActionCard.new(:description => "Sow", :actions => {:sow => true})
+    end
+    
+    def self.sow_and_or_bake_bread
+      ActionCard.chain(self.bake_bread, self.sow, :and_or)
+    end
+    
+    def self.build_fences
+      ActionCard.new(:description => "Build Fences", :actions => {
+        :fences => {:wood => 1}
+      })
+    end
+    
+    def self.sheep
+      ActionCard.new(:description => "1 Sheep", :fixed => {:sheep => 1})
+    end
+
+    def self.boar
+      ActionCard.new(:description => "1 Boar", :fixed => {:boar => 1})
+    end
+    
+    def self.cattle
+      ActionCard.new(:description => "1 Cattle", :fixed => {:cattle => 1})
+    end
+    
+    def self.after_family_growth_minor_improvement
+      ActionCard.chain(self.family_growth, self.minor_improvement, :after)
+    end
+    
+    def self.vegetable
+      ActionCard.new(:description => "1 Vegetable", :per_turn => {:vegetable => 1})
+    end
+    
+    def self.plow_and_sow
+      ActionCard.chain(self.plow_one_field, self.sow, :and_or)
+    end
+    
+    def self.after_renovate_build_fences
+      ActionCard.chain(self.renovate, self.build_fences, :after)
+    end
+    
+    def self.renovate
+      ActionCard.new(:description => "Renovate", :actions => {
+        :renovate => {
+          :clay => {
+            :per_room => {:clay => 1},
+            :fixed => {:reed => 1}
+          },
+          :stone => {
+            :per_room => {:clay => 1},
+            :fixed => {:reed => 1}
+          }
+        }
+      })
+    end
+    
+    def self.renovate_and_minor_or_major_improvement
+      ActionCard.chain(self.renovate, self.minor_or_major_improvement, :after)
+    end
+    
+    def self.stone(n)
+      ActionCard.new(:description => "#{n} Stone", :per_turn => {:stone => 1})
+    end
   end
   
   class Fixed
@@ -169,9 +238,22 @@ module CardSets
   
   class Turn
     def self.cards(options = {})
+      [
+        [Base.minor_or_major_improvement, Base.sow_and_or_bake_bread, Base.build_fences, Base.sheep], 
+        [Base.after_family_growth_minor_improvement, Base.renovate_and_minor_or_major_improvement, Base.stone(1)], 
+        [Base.vegetable, Base.boar], 
+        [Base.cattle, Base.stone(1)], 
+        [Base.plow_and_sow, Base.family_growth(0)],
+        [Base.after_renovate_build_fences]
+      ]
     end
     
     def self.shuffled_cards(options = {})
+      cardset = self.cards.dup
+      cardset.each do |set|
+        set.shuffle!
+      end
+      cardset.flatten
     end
   end
 end

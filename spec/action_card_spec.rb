@@ -159,16 +159,11 @@ describe ActionCard do
     a.act!.should == {:required_actions => {:starting_player => true}, :resources => {}}
   end
   
-  it "should allow minor improvements" do
-    a = ActionCard.new(:description => "Minor Improvement", :actions => {:minor_improvent => :single})
-    a.act!.should == {:required_actions => {:minor_improvent => :single}, :resources => {}}
+  it "should allow improvements" do
+    a = ActionCard.new(:description => "Minor Improvement", :actions => {:improvement => {:type => :minor, :multiple => false}})
+    a.act!.should == {:required_actions => {:improvement => {:type => :minor, :multiple => false}}, :resources => {}}
   end
   
-  it "should allow major improvements" do
-    a = ActionCard.new(:description => "Major Improvement", :actions => {:major_improvent => :single})
-    a.act!.should == {:required_actions => {:major_improvent => :single}, :resources => {}}
-  end
-
   it "should allow plowing" do
     a = ActionCard.new(:description => "Plow 1 Field", :actions => {:plow => 1})
     a.act!.should == {:required_actions => {:plow => 1}, :resources => {}}

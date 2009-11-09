@@ -54,5 +54,16 @@ describe CardSets::Starting do
 end
 
 describe CardSets::Turn do
+  it "should have 14 cards in total" do
+    c = CardSets::Turn.cards.flatten.each do |card|
+      card.should be_instance_of(ActionCard)
+    end
+    c.size.should == 14
+  end
   
+  it "should shuffle cards" do 
+    c = CardSets::Turn.cards
+    d = CardSets::Turn.shuffled_cards
+    c.should_not == d
+  end
 end
