@@ -213,6 +213,47 @@ describe ActionCard do
     a.act!.should == {:required_actions => {:renovate => renovation_cost}, :resources => {}}
   end
     
+  it "should allow a or b or c effects" do
+    sheep = ActionCard.new(:description => "1 Sheep", :per_turn => {:sheep => 1})
+    boar = ActionCard.new(:description => "1 Boar", :per_turn => {:boar => 1})
+    a = ActionCard.new(:description => "1 Cattle", :per_turn => {:cattle => 1}, :or => [sheep, boar])
+    a.next_turn!
+    a.act!.should == {:resources => {:cattle => 1}, :required_actions => {}}
+    a.next_turn!
+    a.act!(:or => 0).should == {:resources => {:sheep => 2}, :required_actions => {}}
+    a.next_turn!
+    a.act!(:or => 1).should == {:resources => {:boar => 3}, :required_actions => {}}
+  end
+  
+  it "should allow trade effects" do
+    a = ActionCard.new(:description => "1 Food x 1 Cattle", :actions => {:trade => {:cost => {:food => 1}, :result => {:cattle => 1}, :multiple => false}})
+    a.act!.should == {:required_actions => {:trade => {:cost => {:food => 1}, :result => {:cattle => 1}, :multiple => false}}, :resources => {}}
+  end
+  
+  it "should allow multiple trade effects" do
+    a = ActionCard.new(:description => "focolare", :actions => {:trade => [{:cost => {:sheep => 1}, :result => {:food => 2}}, {:cost => {:boar => 1}, :result => {:food => 2}}, {:cost => {:vegetable => 1}, :result => {:food => 3}}]})
+    a.act!.should == {
+      :resources => {},
+      :required_actions => {
+        :trade => [
+          {:cost => {:sheep => 1}, :result => {:food => 2}, :multiple => true},
+          {:cost => {:boar => 1}, :result => {:food => 2}, :multiple => true},
+          {:cost => {:vegetable => 1}, :result => {:food => 3}, :multiple => true},
+        ]
+      }
+    }
+  end
+  
+  it "should allow trade effects with baking requirements" do
+    a = ActionCard.new(:description => "Forno", :actions => {:trade => {:cost => {:grain => 1}, :result => {:food => 5}, :bake => 1}})
+    a.act!.should == {
+      :resources => {},
+      :required_actions => {
+        :trade => {:cost => {:grain => 1}, :result => {:food => 5}, :bake => 1}
+      }
+    }
+  end
+  
   private
   def room_cost
     {

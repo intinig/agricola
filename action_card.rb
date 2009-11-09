@@ -1,5 +1,5 @@
 class ActionCard
-  attr_accessor :or_card, :and_or_card, :after_card, :and_card
+  attr_accessor :and_or_card, :after_card, :and_card
   attr_reader :description, :fixed, :per_turn, :actions
   
   def initialize(options = {})
@@ -12,6 +12,9 @@ class ActionCard
     
     @and_card = options.delete(:and)
     @or_card = options.delete(:or)
+    if @or_card 
+      @or_card = [@or_card] unless @or_card.is_a?(Array)
+    end
     @and_or_card = options.delete(:and_or)
     @after_card = options.delete(:after)
   end
@@ -47,7 +50,9 @@ class ActionCard
   end
   
   def act!(options = {})
-    return @or_card.act! if options[:or]
+    or_index = options.delete(:or)
+    or_index = 0 if or_index == true
+    return @or_card[or_index].act! if or_index
     return @and_or_card.act! if options[:and_or] == :or
     
     result = {
@@ -66,8 +71,11 @@ class ActionCard
     @per_turn.each do |k, v|
       @resources[k] = @resources[k].to_i + v
     end
-    
-    @or_card.next_turn! if @or_card
+    if @or_card
+      @or_card.each do |card|
+        card.next_turn! 
+      end
+    end
     @and_or_card.next_turn! if @and_or_card
     @after_card.next_turn! if @after_card
   end
@@ -75,6 +83,15 @@ class ActionCard
   def add_resources(options)
     options.each do |key, value|
       @resources[key] += value if @resources.has_key?(key)
+    end
+  end
+  
+  def or_card
+    return nil if @or_card.nil?
+    if @or_card.size == 1
+      @or_card[0]
+    else
+      @or_card
     end
   end
   
@@ -92,6 +109,17 @@ class ActionCard
     actions = options.delete(:actions) || {}
     actions.each do |k,v|
       actions.delete(k) unless v
+      if k == :trade
+        if v.is_a?(Hash)
+          actions[k] = {:multiple => true}.merge(v) unless v.has_key?(:bake)
+        elsif v.is_a?(Array)
+          new_values = []
+          v.each do |val|
+            new_values << {:multiple => true}.merge(val) unless val.has_key?(:bake)
+          end
+          actions[k] = new_values
+        end
+      end
     end
     
     actions

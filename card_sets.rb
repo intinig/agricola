@@ -103,6 +103,32 @@ module CardSets
     def self.traveling_players
       ActionCard.new(:description => "Traveling Players", :per_turn => {:food => 1})
     end
+    
+    def self.family_growth(space_needed = 1, turn = 5)
+      ActionCard.new(:description => "Family Growth", :actions => {:family_growth => {:rooms => space_needed, :turn => turn}})
+    end
+    
+    def self.reed_stone_wood
+      ActionCard.new(:description => "1 Reed, 1 Stone and 1 Wood", :fixed => {:stone => 1, :wood => 1}, :per_turn => {:reed => 1})
+    end
+    
+    def self.construction_resources_or_family_growth
+      ActionCard.chain(self.construction_resource(2), self.family_growth, :or)
+    end
+    
+    def self.occupation_or_family_growth
+      ActionCard.chain(self.occupation([{:food => 1}, {:food => 1}, {:food => 2}]), self.family_growth, :or)
+    end
+    
+    def self.build_rooms_or_traveling_players
+      ActionCard.chain(self.build_rooms, self.traveling_players, :or)
+    end
+    
+    def self.sheep_boar_cattle
+      cattle = ActionCard.new(:description => "1 Food x 1 Cattle", :actions => {:trade => {:cost => {:food => 1}, :result => {:cattle => 1}, :multiple => false}})
+      boar = ActionCard.new(:description => "1 Boar", :fixed => {:boar => 1})
+      ActionCard.new(:description => "1 Sheep, 1 Food", :fixed => {:food => 1, :sheep => 1}, :or => [boar, cattle])
+    end
   end
   
   class Fixed
